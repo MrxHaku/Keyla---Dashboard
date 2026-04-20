@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semillero Alografía — Dashboard de Indicadores 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,800&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:        #0d0f14;
+  --surface:   #141720;
+  --surface2:  #1c2030;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.13);
+  --text:      #edeef2;
+  --muted:     #6b7280;
+  --muted2:    #9ca3af;
+
+  --c1: #6c63ff;   /* violeta  — APG */
+  --c2: #00c9a7;   /* teal     — ASI */
+  --c3: #f59e0b;   /* amber    — TP  */
+  --c4: #f43f5e;   /* rose     — PM  */
+  --c5: #38bdf8;   /* sky      — AC  */
+
+  --c1a: rgba(108,99,255,0.15);
+  --c2a: rgba(0,201,167,0.15);
+  --c3a: rgba(245,158,11,0.15);
+  --c4a: rgba(244,63,94,0.15);
+  --c5a: rgba(56,189,248,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GRID LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════
+   SIDEBAR
+══════════════════════════════════ */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 1.75rem 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-brand .tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+  font-family: 'Sora', sans-serif;
+}
+.sidebar-brand h2 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+}
+.sidebar-brand h2 span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: var(--muted2);
+  font-family: 'Sora', sans-serif;
+  margin-top: 0.25rem;
+}
+
+.sidebar-nav {
+  padding: 1rem 0.75rem;
+  flex: 1;
+}
+.nav-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 0.75rem;
+  margin-bottom: 0.4rem;
+  margin-top: 0.75rem;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  color: var(--muted2);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.8rem;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--surface2); color: var(--text); }
+.nav-item .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.nav-item .nav-pct {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-family: 'Sora', sans-serif;
+  opacity: 0.6;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════ */
+.content {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar h1 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.topbar-right {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.pill-filter {
+  border: 1px solid var(--border2);
+  background: transparent;
+  border-radius: 100px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.72rem;
+  font-family: 'Sora', sans-serif;
+  color: var(--muted2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pill-filter:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+.pill-filter.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* ── MAIN PADDING ── */
+.main-inner {
+  padding: 1.75rem 2rem 4rem;
+  flex: 1;
+}
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── KPI ROW ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.kpi:hover { border-color: var(--border2); }
+.kpi-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 10px 10px 0 0;
+}
+.kpi-lbl {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.kpi-val {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+.kpi-sub {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+/* ── CHART PANELS ── */
+.panels-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.panel-full { margin-bottom: 1rem; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.35rem 1.5rem 1.25rem;
+}
+.panel-head {
+  margin-bottom: 1rem;
+}
+.panel-head h3 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+.panel-head p {
+  font-size: 0.72rem;
+  color: var(--muted2);
+  line-height: 1.5;
+}
+.chart-box { position: relative; }
+
+/* ── INDICATOR CARDS GRID ── */
+.ind-section { margin-top: 2rem; }
+.ind-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.ind-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.ind-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.ind-top {
+  padding: 1.2rem 1.4rem 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: start;
+  border-bottom: 1px solid var(--border);
+}
+.ind-code {
+  font-family: 'Sora', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.ind-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+.ind-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.tag-pill {
+  font-size: 0.6rem;
+  font-family: 'Sora', sans-serif;
+  padding: 0.18rem 0.55rem;
+  border-radius: 100px;
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+}
+.ind-right { text-align: right; }
+.ind-pct-big {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.ind-pct-label {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+.ind-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.ind-meta-cell {
+  padding: 0.6rem 1rem;
+  border-right: 1px solid var(--border);
+}
+.ind-meta-cell:last-child { border-right: none; }
+.ind-meta-lbl {
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.2rem;
+}
+.ind-meta-val {
+  font-family: 'Sora', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.ind-impact {
+  padding: 0.55rem 1.4rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.4;
+  border-bottom: 1px solid var(--border);
+}
+.ind-chart-area {
+  padding: 1rem 1.25rem 1.1rem;
+}
+.ind-chart-lbl {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ind-chart-lbl span { color: var(--muted2); }
+
+/* ── OVERFLOWING TABLE ── */
+.table-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+.table-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.table-panel thead th {
+  background: var(--surface2);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 0.7rem 1rem;
+  text-align: left;
+  white-space: nowrap;
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+}
+.table-panel tbody tr { border-top: 1px solid var(--border); }
+.table-panel tbody tr:hover { background: var(--surface2); }
+.table-panel tbody td {
+  padding: 0.7rem 1rem;
+  color: var(--muted2);
+  font-family: 'Sora', sans-serif;
+}
+.table-panel tbody td:first-child { color: var(--text); font-weight: 500; }
+.table-wrap { overflow-x: auto; }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 1rem;
+}
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--muted2);
+}
+.leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .ind-cards { grid-template-columns: 1fr; }
+  .panels-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .main-inner { padding: 1rem 1rem 3rem; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.kpi           { animation: fadeIn 0.4s ease both; }
+.kpi:nth-child(1){ animation-delay:.05s; }
+.kpi:nth-child(2){ animation-delay:.10s; }
+.kpi:nth-child(3){ animation-delay:.15s; }
+.kpi:nth-child(4){ animation-delay:.20s; }
+.kpi:nth-child(5){ animation-delay:.25s; }
+.ind-card       { animation: fadeIn 0.45s ease both; }
+.ind-card:nth-child(1){ animation-delay:.08s; }
+.ind-card:nth-child(2){ animation-delay:.14s; }
+.ind-card:nth-child(3){ animation-delay:.20s; }
+.ind-card:nth-child(4){ animation-delay:.26s; }
+.ind-card:nth-child(5){ animation-delay:.32s; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ════════════════ SIDEBAR ════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="tag">Semillero · UNIAJC · 2026</div>
+      <h2>Alografía
+        <span>Dashboard de Indicadores</span>
+      </h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">General</div>
+      <button class="nav-item active" onclick="scrollTo(0,0)">
+        <div class="dot" style="background:#6c63ff"></div>
+        Resumen global
+      </button>
+      <button class="nav-item" onclick="document.getElementById('sec-panorama').scrollIntoView({behavior:'smooth'})">
+        <div class="dot" style="background:#00c9a7"></div>
+        Panorama anual
+      </button>
+      <button class="nav-item" onclick="document.getElementById('sec-individual').scrollIntoView({behavior:'smooth'})">
+        <div class="dot" style="background:#f59e0b"></div>
+        Proyección por indicador
+      </button>
+      <button class="nav-item" onclick="document.getElementById('sec-tabla').scrollIntoView({behavior:'smooth'})">
+        <div class="dot" style="background:#f43f5e"></div>
+        Matriz completa
+      </button>
+
+      <div class="nav-label" style="margin-top:1.25rem">Indicadores</div>
+      <button class="nav-item" id="nav-APG" onclick="filterInd('APG')">
+        <div class="dot" style="background:var(--c1)"></div>
+        APG
+        <span class="nav-pct">67%</span>
+      </button>
+      <button class="nav-item" id="nav-ASI" onclick="filterInd('ASI')">
+        <div class="dot" style="background:var(--c2)"></div>
+        ASI
+        <span class="nav-pct">67%</span>
+      </button>
+      <button class="nav-item" id="nav-TP" onclick="filterInd('TP')">
+        <div class="dot" style="background:var(--c3)"></div>
+        TP
+        <span class="nav-pct">33%</span>
+      </button>
+      <button class="nav-item" id="nav-PM" onclick="filterInd('PM')">
+        <div class="dot" style="background:var(--c4)"></div>
+        PM
+        <span class="nav-pct">0%</span>
+      </button>
+      <button class="nav-item" id="nav-AC" onclick="filterInd('AC')">
+        <div class="dot" style="background:var(--c5)"></div>
+        AC
+        <span class="nav-pct">0%</span>
+      </button>
+      <button class="nav-item" onclick="filterInd('todos')" style="margin-top:4px">
+        <div class="dot" style="background:var(--muted)"></div>
+        Ver todos
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      Presentado por:<br><strong style="color:var(--muted2)">Keyla Tejada Pineda</strong><br>
+      Maestría en Comunicación · UNIAJC
+    </div>
+  </aside>
+
+  <!-- ════════════════ MAIN ════════════════ -->
+  <div class="content">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h1>Semillero Alografía — Indicadores Estratégicos 2026</h1>
+      <div class="topbar-right">
+        <button class="pill-filter active" data-f="todos">Todos</button>
+        <button class="pill-filter" data-f="Generación de contenido interno">Generación</button>
+        <button class="pill-filter" data-f="Aumento de solicitudes externas">Solicitudes</button>
+        <button class="pill-filter" data-f="Diseño de productos editoriales">Diseño</button>
+        <button class="pill-filter" data-f="Apropiación de conocimiento">Apropiación</button>
+      </div>
+    </div>
+
+    <div class="main-inner">
+
+      <!-- KPIs -->
+      <div class="section-title">Resumen ejecutivo</div>
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-accent" style="background:var(--c1)"></div>
+          <div class="kpi-lbl">Indicadores</div>
+          <div class="kpi-val">5</div>
+          <div class="kpi-sub">distribuidos en 4 etapas estratégicas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-accent" style="background:var(--c2)"></div>
+          <div class="kpi-lbl">Avance promedio</div>
+          <div class="kpi-val" id="kpi-avance">33%</div>
+          <div class="kpi-sub">sobre los indicadores activos</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-accent" style="background:var(--c3)"></div>
+          <div class="kpi-lbl">Meta editorial</div>
+          <div class="kpi-val">6</div>
+          <div class="kpi-sub">publicaciones maquetadas al año</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-accent" style="background:var(--c4)"></div>
+          <div class="kpi-lbl">Reducción tiempo</div>
+          <div class="kpi-val">33%</div>
+          <div class="kpi-sub">de 90 → 60 días por producto</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-accent" style="background:var(--c5)"></div>
+          <div class="kpi-lbl">Interacciones meta</div>
+          <div class="kpi-val">100</div>
+          <div class="kpi-sub">respecto al periodo anterior</div>
+        </div>
+      </div>
+
+      <!-- PANORAMA SECTION -->
+      <div class="section-title" id="sec-panorama">Panorama anual</div>
+      <div class="panels-2">
+
+        <!-- Donut peso -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Distribución de peso estratégico</h3>
+            <p>Cada indicador tiene un peso del 20% — distribución perfectamente equilibrada.</p>
+          </div>
+          <div class="chart-box" style="height:240px">
+            <canvas id="chartDona"></canvas>
+          </div>
+        </div>
+
+        <!-- Barras por etapa -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Meta anual por etapa</h3>
+            <p>Total de actividades o unidades planeadas según la etapa estratégica.</p>
+          </div>
+          <div class="chart-box" style="height:240px">
+            <canvas id="chartEtapas"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Stacked mensual FULL -->
+      <div class="panel panel-full">
+        <div class="panel-head">
+          <h3>Actividades planeadas mes a mes</h3>
+          <p>Distribución mensual de todas las actividades según el plan de trabajo del semillero Alografía.</p>
+        </div>
+        <div class="chart-box" style="height:280px">
+          <canvas id="chartMensual"></canvas>
+        </div>
+        <div class="legend" id="legMensual"></div>
+      </div>
+
+      <!-- Líneas acumulado FULL -->
+      <div class="panel panel-full">
+        <div class="panel-head">
+          <h3>Evolución del avance acumulado anual</h3>
+          <p>Curva de crecimiento del porcentaje de cumplimiento de cada indicador a lo largo de los 12 meses. La línea roja marca el 100% de la meta.</p>
+        </div>
+        <div class="chart-box" style="height:300px">
+          <canvas id="chartAcum"></canvas>
+        </div>
+        <div class="legend" id="legAcum"></div>
+      </div>
+
+      <!-- ── INDIVIDUAL PER INDICATOR ── -->
+      <div class="section-title" id="sec-individual">Proyección mensual por indicador</div>
+      <div class="ind-cards" id="indCards"></div>
+
+      <!-- ── TABLA ── -->
+      <div class="section-title" id="sec-tabla" style="margin-top:2rem">Matriz completa de indicadores</div>
+      <div class="table-panel">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Indicador</th>
+                <th>Etapa</th>
+                <th>Métrica</th>
+                <th>Peso</th>
+                <th>Frecuencia</th>
+                <th>Meta año</th>
+                <th>% Avance</th>
+                <th>Impacto esperado</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /main-inner -->
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script>
+/* ═══════════════════════════
+   DATA
+═══════════════════════════ */
+const IND = [
+  {
+    id:'APG',
+    nombre:'Acompañamiento a Proyectos de Grado',
+    etapa:'Generación de contenido interno',
+    descripcion:'Mide la cantidad de proyectos de grado acompañados por el semillero que pueden convertirse en productos editoriales institucionales.',
+    metrica:'Porcentaje (%) de productos editoriales aprobados',
+    peso:0.20,
+    tipo:'Directo',
+    frecuencia:'Semestral',
+    meta:'3 proyectos aprobados por semestre',
+    metaAnio:6,
+    pctAvance:0.667,
+    impacto:'Incremento del 100% en proyectos acompañados — de 2 a 3 por semestre.',
+    color:'var(--c1)', colorHex:'#6c63ff', colorA:'var(--c1a)',
+    // valores absolutos mes a mes (hoja1)
+    vals:[0,1,1,2,2,3,0,1,1,2,2,3],
+    // % acumulado mes a mes calculado sobre meta 6
+    acum:[0,0.17,0.33,0.50,0.67,0.83,0.83,0.83,0.83,0.83,0.83,1.00]
+  },
+  {
+    id:'ASI',
+    nombre:'Articulación con Semilleros de Investigación',
+    etapa:'Aumento de solicitudes externas',
+    descripcion:'Mide la articulación con otros grupos institucionales que soliciten apoyo para la producción de sus publicaciones académicas.',
+    metrica:'Número de solicitudes de producción editorial',
+    peso:0.20,
+    tipo:'Directo',
+    frecuencia:'Semestral',
+    meta:'3 solicitudes de producción editorial por semestre',
+    metaAnio:6,
+    pctAvance:0.667,
+    impacto:'Incremento del 50% en solicitudes externas — de 2 a 3 por semestre.',
+    color:'var(--c2)', colorHex:'#00c9a7', colorA:'var(--c2a)',
+    vals:[0,1,1,2,2,3,0,1,1,2,2,3],
+    acum:[0,0.17,0.33,0.50,0.67,0.83,0.83,0.83,0.83,0.83,0.83,1.00]
+  },
+  {
+    id:'TP',
+    nombre:'Tiempo de Producción Editorial',
+    etapa:'Diseño de productos editoriales',
+    descripcion:'Mide el tiempo promedio de los procesos editoriales (diagramación, maquetación, corrección, aprobación y arte finalizado). Actualmente: 90 días.',
+    metrica:'Promedio de días de producción por producto',
+    peso:0.20,
+    tipo:'Directo',
+    frecuencia:'Anual',
+    meta:'Reducir tiempo promedio a 60 días',
+    metaAnio:60,
+    pctAvance:0.333,
+    impacto:'Reducción del 33% en el tiempo total de producción editorial.',
+    color:'var(--c3)', colorHex:'#f59e0b', colorA:'var(--c3a)',
+    vals:[90,88,85,82,80,78,75,72,70,68,65,60],
+    // % de reducción acumulada sobre meta (reducir de 90 a 60 = bajar 30 días)
+    // avance = (90 - valor_actual) / 30
+    acum:[0,0.07,0.17,0.27,0.33,0.40,0.50,0.60,0.67,0.73,0.83,1.00]
+  },
+  {
+    id:'PM',
+    nombre:'Publicaciones Maquetadas',
+    etapa:'Diseño de productos editoriales',
+    descripcion:'Mide la cantidad de productos editoriales desarrollados y aprobados por el semillero durante el año.',
+    metrica:'Número de productos editoriales finalizados',
+    peso:0.20,
+    tipo:'Directo',
+    frecuencia:'Semestral',
+    meta:'6 productos editoriales en el año',
+    metaAnio:6,
+    pctAvance:0.00,
+    impacto:'Cumplimiento del 100% de la meta de maquetación: 6 publicaciones.',
+    color:'var(--c4)', colorHex:'#f43f5e', colorA:'var(--c4a)',
+    vals:[0,1,1,2,2,3,0,1,1,2,2,3],
+    acum:[0,0.17,0.33,0.50,0.67,0.83,0.83,0.83,0.83,0.83,0.83,1.00]
+  },
+  {
+    id:'AC',
+    nombre:'Apropiación de Contenidos',
+    etapa:'Apropiación de conocimiento',
+    descripcion:'Grado en que la comunidad académica accede, lee e interactúa con las revistas producidas por el semillero (descargas, visualizaciones, participación).',
+    metrica:'Número total de interacciones (lecturas + descargas)',
+    peso:0.20,
+    tipo:'Directo',
+    frecuencia:'Semestral',
+    meta:'Incremento de 100 interacciones respecto al periodo anterior',
+    metaAnio:100,
+    pctAvance:0.00,
+    impacto:'Incremento superior a 100 unidades frente a la línea base.',
+    color:'var(--c5)', colorHex:'#38bdf8', colorA:'var(--c5a)',
+    vals:[5,10,15,20,25,50,5,10,15,20,25,50],
+    acum:[0.05,0.10,0.15,0.20,0.25,0.50,0.50,0.50,0.50,0.50,0.50,1.00]
+  }
+];
+
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+/* ═══════════════════════════
+   HELPERS
+═══════════════════════════ */
+let activeFilter = 'todos';
+let indFilter    = 'todos';
+
+function getFiltered() {
+  if (activeFilter === 'todos') return IND;
+  return IND.filter(d => d.etapa === activeFilter);
+}
+
+function hexA(hex, a) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+Chart.defaults.font.family = "'Sora', sans-serif";
+Chart.defaults.font.size   = 11;
+Chart.defaults.color       = '#6b7280';
+
+const gridColor = 'rgba(255,255,255,0.05)';
+
+let CHARTS = {};
+
+function killCharts() {
+  Object.values(CHARTS).forEach(c => c && c.destroy());
+  CHARTS = {};
+}
+
+/* ═══════════════════════════
+   CHART: DONUT
+═══════════════════════════ */
+function buildDona(data) {
+  CHARTS.dona = new Chart(document.getElementById('chartDona'), {
+    type:'doughnut',
+    data:{
+      labels: data.map(d=>d.id),
+      datasets:[{
+        data: data.map(d=>d.peso*100),
+        backgroundColor: data.map(d=>d.colorHex),
+        borderColor: '#141720',
+        borderWidth: 3,
+        hoverOffset: 10
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:'68%',
+      plugins:{
+        legend:{ position:'right', labels:{ boxWidth:9, padding:14, color:'#9ca3af' } },
+        tooltip:{ callbacks:{ label: c=>` ${c.label}: ${c.parsed.toFixed(0)}% del peso` } }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════
+   CHART: ETAPAS BAR
+═══════════════════════════ */
+function buildEtapas(data) {
+  const etapas = [...new Set(data.map(d=>d.etapa))];
+  const vals   = etapas.map(e => data.filter(d=>d.etapa===e).reduce((s,d)=>s+d.metaAnio,0));
+  const colors = etapas.map((_,i) => data.filter(d=>d.etapa===etapas[i])[0].colorHex);
+
+  CHARTS.etapas = new Chart(document.getElementById('chartEtapas'), {
+    type:'bar',
+    data:{
+      labels: etapas.map(e=>e.split(' ').slice(0,3).join(' ')),
+      datasets:[{
+        data: vals,
+        backgroundColor: colors.map(c=>hexA(c,0.75)),
+        borderColor: colors,
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label: c=>` ${c.parsed.x} unidades/actividades` } }
+      },
+      scales:{
+        x:{ grid:{color:gridColor}, ticks:{color:'#6b7280'} },
+        y:{ grid:{display:false}, ticks:{color:'#9ca3af', font:{size:10}} }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════
+   CHART: STACKED MENSUAL
+═══════════════════════════ */
+function buildMensual(data) {
+  CHARTS.mensual = new Chart(document.getElementById('chartMensual'), {
+    type:'bar',
+    data:{
+      labels: MESES,
+      datasets: data.map(d=>({
+        label: d.id,
+        data: d.vals,
+        backgroundColor: hexA(d.colorHex, 0.7),
+        borderColor: d.colorHex,
+        borderWidth: 1,
+        borderRadius: 3,
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{ mode:'index', intersect:false,
+          callbacks:{ label: c=>`  ${c.dataset.label}: ${c.parsed.y}` }
+        }
+      },
+      scales:{
+        x:{ stacked:true, grid:{display:false}, ticks:{color:'#6b7280'} },
+        y:{ stacked:true, grid:{color:gridColor}, ticks:{color:'#6b7280'} }
+      }
+    }
+  });
+
+  const leg = document.getElementById('legMensual');
+  leg.innerHTML = '';
+  data.forEach(d=>{
+    leg.innerHTML+=`<div class="leg-item"><div class="leg-dot" style="background:${d.colorHex}"></div><span>${d.id} — ${d.nombre.slice(0,30)}${d.nombre.length>30?'…':''}</span></div>`;
+  });
+}
+
+/* ═══════════════════════════
+   CHART: LÍNEAS ACUMULADO
+═══════════════════════════ */
+function buildAcum(data) {
+  CHARTS.acum = new Chart(document.getElementById('chartAcum'), {
+    type:'line',
+    data:{
+      labels: MESES,
+      datasets:[
+        ...data.map(d=>({
+          label: d.id,
+          data: d.acum.map(v=>Math.round(v*100)),
+          borderColor: d.colorHex,
+          backgroundColor: hexA(d.colorHex,0.06),
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#141720',
+          pointBorderColor: d.colorHex,
+          pointBorderWidth: 2,
+          tension: 0.35,
+          fill: false,
+        })),
+        {
+          label:'Meta 100%',
+          data: Array(12).fill(100),
+          borderColor: 'rgba(255,255,255,0.18)',
+          borderWidth: 1.5,
+          borderDash: [6,4],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{display:false},
+        tooltip:{ callbacks:{ label: c=> c.dataset.label==='Meta 100%' ? '  Meta: 100%' : `  ${c.dataset.label}: ${c.parsed.y}%` } }
+      },
+      scales:{
+        x:{ grid:{color:gridColor}, ticks:{color:'#6b7280'} },
+        y:{ min:0, max:110, grid:{color:gridColor},
+          ticks:{ callback:v=>v<=100?v+'%':'', color:'#6b7280' }
+        }
+      }
+    }
+  });
+
+  const leg = document.getElementById('legAcum');
+  leg.innerHTML='';
+  data.forEach(d=>{
+    leg.innerHTML+=`<div class="leg-item"><div class="leg-dot" style="background:${d.colorHex}"></div><span>${d.id} — ${d.nombre.slice(0,28)}${d.nombre.length>28?'…':''}</span></div>`;
+  });
+}
+
+/* ═══════════════════════════
+   INDIVIDUAL CARDS
+═══════════════════════════ */
+function buildIndCards() {
+  const data = indFilter==='todos' ? getFiltered() : IND.filter(d=>d.id===indFilter);
+  const grid = document.getElementById('indCards');
+  grid.innerHTML='';
+
+  Object.keys(CHARTS).filter(k=>k.startsWith('ic_')).forEach(k=>{ CHARTS[k].destroy(); delete CHARTS[k]; });
+
+  data.forEach((ind,idx)=>{
+    const pctLabel = ind.id==='TP'
+      ? `${Math.round(ind.pctAvance*100)}%`
+      : `${Math.round(ind.pctAvance*100)}%`;
+
+    const isInverse = ind.id==='TP'; // tiempo: menor = mejor
+    const chartLabel = isInverse
+      ? '% reducción acumulada del tiempo de producción'
+      : '% de avance acumulado · meta: 100%';
+
+    const canvasId = 'ic_canvas_'+ind.id;
+
+    grid.innerHTML+=`
+    <div class="ind-card">
+      <div class="ind-top">
+        <div>
+          <div class="ind-code" style="color:${ind.colorHex}">${ind.id}</div>
+          <div class="ind-name">${ind.nombre}</div>
+          <div class="ind-tags">
+            <span class="tag-pill">${ind.etapa.split(' ').slice(0,3).join(' ')}</span>
+            <span class="tag-pill">${ind.frecuencia}</span>
+            <span class="tag-pill">${ind.tipo}</span>
+          </div>
+        </div>
+        <div class="ind-right">
+          <div class="ind-pct-big" style="color:${ind.colorHex}">${pctLabel}</div>
+          <div class="ind-pct-label">avance</div>
+        </div>
+      </div>
+      <div class="ind-meta-grid">
+        <div class="ind-meta-cell">
+          <div class="ind-meta-lbl">Peso</div>
+          <div class="ind-meta-val">${(ind.peso*100).toFixed(0)}%</div>
+        </div>
+        <div class="ind-meta-cell">
+          <div class="ind-meta-lbl">Meta año</div>
+          <div class="ind-meta-val">${ind.metaAnio} ${ind.id==='TP'?'días':ind.id==='AC'?'interact.':'act.'}</div>
+        </div>
+        <div class="ind-meta-cell">
+          <div class="ind-meta-lbl">Meta</div>
+          <div class="ind-meta-val" style="font-size:0.7rem;font-weight:400;color:var(--muted2)">${ind.meta.slice(0,28)}…</div>
+        </div>
+      </div>
+      <div class="ind-impact">${ind.impacto}</div>
+      <div class="ind-chart-area">
+        <div class="ind-chart-lbl">
+          ${chartLabel}
+          <span>${ind.metrica.slice(0,30)}</span>
+        </div>
+        <div style="position:relative;height:170px">
+          <canvas id="${canvasId}"></canvas>
+        </div>
+      </div>
+    </div>`;
+
+    setTimeout(()=>{
+      const ctx = document.getElementById(canvasId);
+      if(!ctx) return;
+
+      const acumPct = ind.acum.map(v=>Math.round(v*100));
+
+      CHARTS['ic_'+ind.id] = new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels: MESES,
+          datasets:[
+            {
+              type:'bar',
+              label:'% acumulado',
+              data: acumPct,
+              backgroundColor: acumPct.map(v=> v>0 ? hexA(ind.colorHex,0.70) : hexA(ind.colorHex,0.08)),
+              borderColor:      acumPct.map(v=> v>0 ? ind.colorHex : hexA(ind.colorHex,0.15)),
+              borderWidth: 1.5,
+              borderRadius: 5,
+              borderSkipped: false,
+            },
+            {
+              type:'line',
+              label:'Meta',
+              data: Array(12).fill(100),
+              borderColor:'rgba(255,255,255,0.2)',
+              borderWidth:1.5,
+              borderDash:[5,4],
+              pointRadius:0,
+              fill:false,
+              tension:0,
+            }
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          interaction:{ mode:'index', intersect:false },
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'#1c2030',
+              titleColor:'#edeef2',
+              bodyColor:'#9ca3af',
+              borderColor:'rgba(255,255,255,0.1)',
+              borderWidth:1,
+              callbacks:{
+                title: items=> MESES_FULL[items[0].dataIndex],
+                label: c=> c.datasetIndex===1 ? '  Meta: 100%' : `  Avance: ${c.parsed.y}%`
+              }
+            }
+          },
+          scales:{
+            x:{ grid:{display:false}, ticks:{color:'#6b7280', font:{size:9}} },
+            y:{
+              min:0, max:110,
+              grid:{color:'rgba(255,255,255,0.04)'},
+              ticks:{ stepSize:25, callback:v=>v<=100?v+'%':'', color:'#6b7280', font:{size:9} }
+            }
+          }
+        }
+      });
+    },0);
+  });
+}
+
+/* ═══════════════════════════
+   TABLA
+═══════════════════════════ */
+function buildTabla(data) {
+  const tb = document.getElementById('tableBody');
+  tb.innerHTML='';
+  data.forEach(d=>{
+    tb.innerHTML+=`<tr>
+      <td style="color:${d.colorHex};font-weight:600">${d.id}</td>
+      <td>${d.etapa}</td>
+      <td style="font-size:0.72rem">${d.metrica}</td>
+      <td>${(d.peso*100).toFixed(0)}%</td>
+      <td>${d.frecuencia}</td>
+      <td>${d.metaAnio}</td>
+      <td style="color:${d.colorHex}">${(d.pctAvance*100).toFixed(1)}%</td>
+      <td style="font-size:0.7rem">${d.impacto}</td>
+    </tr>`;
+  });
+}
+
+/* ═══════════════════════════
+   BUILD ALL
+═══════════════════════════ */
+function buildAll() {
+  killCharts();
+  const data = getFiltered();
+  buildDona(data);
+  buildEtapas(data);
+  buildMensual(data);
+  buildAcum(data);
+  buildTabla(data);
+  buildIndCards();
+
+  // update kpi avance
+  const avg = data.reduce((s,d)=>s+d.pctAvance,0)/data.length;
+  document.getElementById('kpi-avance').textContent = Math.round(avg*100)+'%';
+}
+
+/* ═══════════════════════════
+   FILTERS
+═══════════════════════════ */
+document.querySelectorAll('.pill-filter').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.pill-filter').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.f;
+    indFilter = 'todos';
+    buildAll();
+  });
+});
+
+function filterInd(id) {
+  indFilter = id;
+  document.getElementById('sec-individual').scrollIntoView({behavior:'smooth'});
+  buildIndCards();
+}
+
+/* ═══════════════════════════
+   INIT
+═══════════════════════════ */
+buildAll();
+</script>
+</body>
+</html>
